@@ -18,7 +18,8 @@ Generate a Word Mod Document from Jira issues using a project-pinned template an
 ModDocAutomation/
   app.py                    # Flask UI server
   JIraOLK.py                # Jira logic and document generation
-  jira_config.json          # Saved Jira credentials (created/updated by the UI)
+  jira_config.json          # Saved Jira credentials (created/updated by the UI) [ignored by Git]
+  jira_config.example.json  # Example config committed to repo (no secrets)
   MyTemplates/
     MyTemplate.docx         # Your Word template (placeholders described below)
   templates/
@@ -149,6 +150,11 @@ py JIraOLK.py
 - Install dependencies with `python3 -m pip install -r requirements.txt` (or use the install commands above).
 - Run `python3 app.py`.
 - All paths are project-relative, so nothing references your local desktop.
+
+## Security & Secrets
+- This repo includes a `.gitignore` that excludes `jira_config.json` (contains tokens) and `.env`.
+- Commit `jira_config.example.json` (no secrets) to share structure.
+- If you already committed secrets earlier, rotate your Jira API token immediately and force-remove secrets from history.
 
 ## License
 Internal use. Update this section if you plan to distribute.

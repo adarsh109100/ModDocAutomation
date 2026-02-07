@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+
+# Local environment
+.env
+
+# Sensitive config containing API tokens
+jira_config.json
+
+# OS/editor
+*.iml
+.idea/
+.DS_Store

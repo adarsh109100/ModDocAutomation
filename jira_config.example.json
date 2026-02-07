@@ -1,0 +1,5 @@
+{
+  "JIRA_BASE_URL": "https://yourdomain.atlassian.net",
+  "JIRA_EMAIL": "you@example.com",
+  "JIRA_API_TOKEN": "<put-your-api-token-here>"
+}
