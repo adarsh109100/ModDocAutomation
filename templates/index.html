@@ -17,7 +17,9 @@
     <div class="container mt-4">
       {% with messages = get_flashed_messages() %}
         {% if messages %}
-          <div class="alert alert-info">{{ messages[0] }}</div>
+          {% for message in messages %}
+            <div class="alert alert-info">{{ message }}</div>
+          {% endfor %}
         {% endif %}
       {% endwith %}
 
@@ -102,5 +104,12 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      {% if pending_download %}
+      window.setTimeout(function () {
+        window.location.href = "{{ url_for('download_generated') }}";
+      }, 150);
+      {% endif %}
+    </script>
   </body>
 </html>

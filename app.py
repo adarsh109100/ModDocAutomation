@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for, flash
+from flask import Flask, render_template, request, send_file, redirect, url_for, flash, session
 import os
 import json
 import requests
 from requests.auth import HTTPBasicAuth
-from JIraOLK import generate_mod_doc, set_jira_config
+from JIraOLK import generate_mod_doc, get_last_run_summary, set_jira_config
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = "change-me"
@@ -29,7 +29,17 @@ def write_config(cfg):
 @app.route('/', methods=['GET'])
 def home():
     cfg = read_config()
-    return render_template('index.html', config=cfg)
+    pending_download = bool(session.get('pending_download'))
+    return render_template('index.html', config=cfg, pending_download=pending_download)
+
+
+@app.route('/download-generated', methods=['GET'])
+def download_generated():
+    output_path = session.pop('pending_download', None)
+    if output_path and os.path.exists(output_path):
+        return send_file(output_path, as_attachment=True)
+    flash('No generated file available for download.')
+    return redirect(url_for('home'))
 
 
 @app.route('/save-config', methods=['POST'])
@@ -88,9 +98,25 @@ def generate_and_download():
 
     # generate_mod_doc should accept meta for placeholder replacement
     output_path = generate_mod_doc(jira_query, meta)
+    summary = get_last_run_summary()
+    if summary:
+        # Prevent stacking multiple summary tiles across repeated downloads.
+        flashes = session.get('_flashes', [])
+        session['_flashes'] = [item for item in flashes if item[0] != 'summary']
+        uncategorized_types = summary.get("uncategorized_types", [])
+        uncategorized_suffix = f" | Uncategorized types: {', '.join(uncategorized_types)}" if uncategorized_types else ""
+        flash(
+            "Generation summary - "
+            f"Fetched: {summary.get('total_fetched', 0)}, "
+            f"With modification: {summary.get('tickets_with_modification', 0)}, "
+            f"Empty/TBD: {summary.get('empty_modification_tickets', 0)}"
+            f"{uncategorized_suffix}",
+            'summary'
+        )
 
     if output_path and os.path.exists(output_path):
-        return send_file(output_path, as_attachment=True)
+        session['pending_download'] = output_path
+        return redirect(url_for('home'))
 
     flash('Failed to generate Mod Doc')
     return redirect(url_for('home'))
